@@ -1,16 +1,24 @@
 package com.example.mrnobody43.weatherappliactaion;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.TimeZone;
 
 import data.JSONWeatherParser;
 import data.WeatherHttpClient;
@@ -28,6 +36,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView sunrise;
     private TextView sunset;
     private TextView updated;
+    private Button changeCity;
+    public static ArrayList<String> cityNameArray;
+    private String id = "484907";
+
 
     Weather weather = new Weather();
 
@@ -46,8 +58,30 @@ public class MainActivity extends AppCompatActivity {
         sunrise = (TextView) findViewById(R.id.riseText);
         sunset = (TextView) findViewById(R.id.setText);
         updated = (TextView) findViewById(R.id.updateText);
+        changeCity = (Button) findViewById(R.id.change_city);
 
-        renderWetherData("Moscow");
+        cityNameArray = new ArrayList<String>(200000);
+
+        Reader reader = new Reader();
+        reader.execute();
+        
+        renderWetherData(id);
+
+        changeCity.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v){
+                Intent intent = new Intent(MainActivity.this, Search.class);
+                startActivityForResult(intent, 1);
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (data.equals("")) {return;}
+        id = data.getStringExtra("code");
+        renderWetherData(id);
     }
 
     public  void renderWetherData(String city) {
@@ -66,8 +100,6 @@ public class MainActivity extends AppCompatActivity {
 
                 weather = JSONWeatherParser.getWeatger(data);
 
-                Log.v("Data: ", weather.place.getCity());
-
                 return weather;
 
             } catch (IOException e) {
@@ -84,9 +116,17 @@ public class MainActivity extends AppCompatActivity {
 
             DateFormat df = DateFormat.getTimeInstance();
 
-            String sunriseDate = df.format(new Date(weather.place.getSunrise()));
-            String sunsetDate = df.format(new Date(weather.place.getSunset()));
-            String updateDate = df.format(new Date(weather.place.getLastupdate()));
+            Date dSunrise = new Date(weather.place.getSunrise() * 1000);
+            Date dSunset = new Date(weather.place.getSunset() * 1000);
+            Date dUpdate = new Date(weather.place.getLastupdate() * 1000);
+            SimpleDateFormat f = new SimpleDateFormat("HH:mm:ss");
+
+            f.setTimeZone(TimeZone.getTimeZone("GMT+3:00"));
+
+            String sunriseDate = f.format(dSunrise);
+            String sunsetDate = f.format(dSunset);
+            String updateDate = f.format(dUpdate);
+
 
             DecimalFormat decimalFormat = new DecimalFormat("#.#");
             String tempFormat = decimalFormat.format(weather.currentCondition.getTemperature());
@@ -103,8 +143,44 @@ public class MainActivity extends AppCompatActivity {
             int id = getResources().getIdentifier("com.example.mrnobody43.weatherappliactaion:drawable/" + "i" + weather.currentCondition.getIcon(), null, null);
 
             iconView.setImageResource(id);
-
-
         }
     }
+
+    class Reader extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            changeCity.setVisibility(View.INVISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            String file = "cities";
+            int resId = getApplicationContext().getResources().getIdentifier(file, "raw", getApplicationContext().getPackageName());
+            InputStream inputStream = getApplicationContext().getResources().openRawResource(resId);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream), 8192);
+            try {
+                String test;
+                while (true) {
+                    test = reader.readLine();
+                    if (test == null)
+                        break;
+                    cityNameArray.add(test);
+
+                }
+                inputStream.close();
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            changeCity.setVisibility(View.VISIBLE);
+        }
+    }
+
 }
