@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView sunset;
     private TextView updated;
     private Button changeCity;
+    private  Button detailInformation;
     public static ArrayList<String> cityNameArray;
     private String id = "484907";
 
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         sunset = (TextView) findViewById(R.id.setText);
         updated = (TextView) findViewById(R.id.updateText);
         changeCity = (Button) findViewById(R.id.change_city);
+        detailInformation = (Button) findViewById(R.id.detail_information);
 
         cityNameArray = new ArrayList<String>(200000);
 
@@ -72,8 +74,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 Intent intent = new Intent(MainActivity.this, Search.class);
-                intent.putExtra("oldCode",id);
                 startActivityForResult(intent, 1);
+            }
+        });
+
+        detailInformation.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                Intent intent = new Intent(MainActivity.this, DetailWeather.class);
+                intent.putExtra("code", id);
+                startActivity(intent);
             }
         });
     }

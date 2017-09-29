@@ -4,9 +4,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 import Util.Utills;
 import model.Place;
 import model.Weather;
+import model.WeatherWeek;
 
 /**
  * Created by Mr.Nobody43 on 27.09.2017.
@@ -71,5 +74,54 @@ public class JSONWeatherParser {
 
         return null;
     }
+
+    public static ArrayList<WeatherWeek> getWeatherWeek(String data)
+    {
+        ArrayList<WeatherWeek> weatherWeek = new ArrayList<WeatherWeek>();
+
+        try{
+            JSONObject jsonObject = new JSONObject(data);
+            JSONArray list = jsonObject.getJSONArray("list");
+
+            for (int i = 0; i < list.length(); ++i) {
+
+                WeatherWeek cur = new WeatherWeek();
+                JSONObject curJson = list.getJSONObject(i);
+
+                JSONArray jsonArray =curJson.getJSONArray("weather");
+                JSONObject jsonWeather = jsonArray.getJSONObject(0);
+                cur.currentCondition.setWeatherId(Utills.getInt("id", jsonWeather));
+                cur.currentCondition.setDescription(Utills.getString("description", jsonWeather));
+                cur.currentCondition.setCondition(Utills.getString("main", jsonWeather));
+                cur.currentCondition.setIcon(Utills.getString("icon", jsonWeather));
+
+                JSONObject mainObj = Utills.getObect("main", curJson);
+                cur.currentCondition.setHumidity(Utills.getInt("humidity", mainObj));
+                cur.currentCondition.setPressure(Utills.getInt("pressure", mainObj));
+                cur.currentCondition.setMinTemp(Utills.getFloat("temp_min", mainObj));
+                cur.currentCondition.setMaxTemp(Utills.getFloat("temp_max", mainObj));
+                cur.currentCondition.setTemperature(Utills.getDouble("temp",mainObj));
+
+                JSONObject windObj = Utills.getObect("wind", curJson);
+                cur.wind.setSpeed(Utills.getFloat("speed", windObj));
+
+                JSONObject cloudObj = Utills.getObect("clouds", curJson);
+                cur.clouds.setPrecipitation(Utills.getInt("all", cloudObj));
+
+                cur.setDate(Utills.getString("dt_txt", curJson));
+
+                weatherWeek.add(cur);
+            }
+
+            return weatherWeek;
+
+        } catch (JSONException e)
+        {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
 
 }
