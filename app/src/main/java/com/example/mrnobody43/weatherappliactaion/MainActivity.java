@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
         Reader reader = new Reader();
         reader.execute();
-        
+
         renderWetherData(id);
 
         changeCity.setOnClickListener(new View.OnClickListener()
@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 Intent intent = new Intent(MainActivity.this, Search.class);
+                intent.putExtra("oldCode",id);
                 startActivityForResult(intent, 1);
             }
         });
@@ -79,9 +80,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (data.equals("")) {return;}
-        id = data.getStringExtra("code");
-        renderWetherData(id);
+        if (data != null) {
+            id = data.getStringExtra("code");
+            renderWetherData(id);
+        }
     }
 
     public  void renderWetherData(String city) {

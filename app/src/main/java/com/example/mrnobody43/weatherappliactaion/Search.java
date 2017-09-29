@@ -32,7 +32,6 @@ public class Search extends AppCompatActivity {
         initList();
         listView.setAdapter(adapter);
 
-
         search.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -75,7 +74,12 @@ public class Search extends AppCompatActivity {
 
                 Intent intent = new Intent();
 
-                intent.putExtra("code", words[0]);
+                if (words[1].equals("Hurzuf")) {
+                    intent.putExtra("code", "707860");
+                }
+                else {
+                    intent.putExtra("code", words[0]);
+                }
                 setResult(RESULT_OK, intent);
                 finish();
             }
