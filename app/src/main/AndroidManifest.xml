@@ -23,6 +23,13 @@
             android:name=".DetailWeather"
             android:label="@string/title_activity_detail_weather"
             android:theme="@style/AppTheme.NoActionBar" />
+
+        <service
+            android:name="services.CheckUpdates"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":myProcess"
+            ></service>
     </application>
 
 </manifest>

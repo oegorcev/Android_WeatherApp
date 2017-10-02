@@ -7,7 +7,6 @@ package model;
 public class WeatherWeek {
 
     public CurrentCondition currentCondition = new CurrentCondition();
-    public Temperature temperature = new Temperature();
     public Wind wind = new Wind();
     public Clouds clouds = new Clouds();
     public String iconData;
@@ -21,13 +20,6 @@ public class WeatherWeek {
         this.currentCondition = currentCondition;
     }
 
-    public Temperature getTemperature() {
-        return temperature;
-    }
-
-    public void setTemperature(Temperature temperature) {
-        this.temperature = temperature;
-    }
 
     public Wind getWind() {
         return wind;

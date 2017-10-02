@@ -1,6 +1,9 @@
 package com.example.mrnobody43.weatherappliactaion;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -20,9 +23,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
 
+import Util.Utills;
 import data.JSONWeatherParser;
 import data.WeatherHttpClient;
 import model.Weather;
+import services.CheckUpdates;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,12 +42,45 @@ public class MainActivity extends AppCompatActivity {
     private TextView sunset;
     private TextView updated;
     private Button changeCity;
-    private  Button detailInformation;
+    private Button detailInformation;
     public static ArrayList<String> cityNameArray;
     private String id = "484907";
 
+    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            renderWetherData(id);
+        }
+    };
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        registerReceiver(broadcastReceiver, new IntentFilter(
+                CheckUpdates.BROADCAST_ACTION));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    // unregisterReceiver(broadcastReceiver);
+    }
 
     Weather weather = new Weather();
+
+    @Override
+    protected void onDestroy() {
+
+        super.onDestroy();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +102,10 @@ public class MainActivity extends AppCompatActivity {
 
         cityNameArray = new ArrayList<String>(200000);
 
+
+        startService(new Intent(this, CheckUpdates.class));
+
+
         Reader reader = new Reader();
         reader.execute();
 
@@ -82,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 Intent intent = new Intent(MainActivity.this, DetailWeather.class);
-                intent.putExtra("code", id);
+                intent.putExtra(Utills.CODE, id);
                 startActivity(intent);
             }
         });
@@ -91,16 +133,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (data != null) {
-            id = data.getStringExtra("code");
+            id = data.getStringExtra(Utills.CODE);
             renderWetherData(id);
         }
     }
 
-    public  void renderWetherData(String city) {
+    public void renderWetherData(String city) {
         WeatherTask weatherTask = new WeatherTask();
         weatherTask.execute(new String[]{city + "&units=metric"});
     }
-
 
     private class  WeatherTask extends AsyncTask<String, Void, Weather>{
 
@@ -138,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
             String sunriseDate = f.format(dSunrise);
             String sunsetDate = f.format(dSunset);
             String updateDate = f.format(dUpdate);
-
 
             DecimalFormat decimalFormat = new DecimalFormat("#.#");
             String tempFormat = decimalFormat.format(weather.currentCondition.getTemperature());
@@ -178,7 +218,6 @@ public class MainActivity extends AppCompatActivity {
                     if (test == null)
                         break;
                     cityNameArray.add(test);
-
                 }
                 inputStream.close();
                 reader.close();
@@ -194,5 +233,4 @@ public class MainActivity extends AppCompatActivity {
             changeCity.setVisibility(View.VISIBLE);
         }
     }
-
 }

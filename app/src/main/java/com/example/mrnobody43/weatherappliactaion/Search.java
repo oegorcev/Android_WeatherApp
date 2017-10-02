@@ -14,6 +14,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import Util.Utills;
+
 public class Search extends AppCompatActivity {
 
     public ListView listView;
@@ -51,9 +53,6 @@ public class Search extends AppCompatActivity {
             public void afterTextChanged(Editable editable) {
 
             }
-
-
-
         });
 
     }
@@ -75,18 +74,15 @@ public class Search extends AppCompatActivity {
                 Intent intent = new Intent();
 
                 if (words[1].equals("Hurzuf")) {
-                    intent.putExtra("code", "707860");
+                    intent.putExtra(Utills.CODE, "707860");
                 }
                 else {
-                    intent.putExtra("code", words[0]);
+                    intent.putExtra(Utills.CODE, words[0]);
                 }
                 setResult(RESULT_OK, intent);
                 finish();
             }
         });
-
-
-
     }
 
     private void searchItem(String text) {

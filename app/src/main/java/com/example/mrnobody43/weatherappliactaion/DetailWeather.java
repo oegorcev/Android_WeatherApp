@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
+import Util.Utills;
 import data.JSONWeatherParser;
 import data.WeatherHttpClient;
 import model.WeatherWeek;
@@ -32,17 +33,15 @@ public class DetailWeather extends AppCompatActivity {
 
         Intent intent = new Intent(DetailWeather.this.getIntent());
 
-        id = intent.getStringExtra("code");
+        id = intent.getStringExtra(Utills.CODE);
 
         renderWetherData(id);
     }
-
 
     public  void renderWetherData(String city) {
         DetailWeather.WeatherWeekTask weatherWeekTask = new DetailWeather.WeatherWeekTask();
         weatherWeekTask.execute(new String[]{city + "&units=metric"});
     }
-
 
     private class  WeatherWeekTask extends AsyncTask<String, Void, ArrayList<WeatherWeek>> {
 
@@ -84,5 +83,4 @@ public class DetailWeather extends AppCompatActivity {
             listViewWeek.setAdapter(adapter);
         }
     }
-
 }

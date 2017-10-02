@@ -12,6 +12,7 @@ public class Utills {
     public static final String Base_URL ="http://api.openweathermap.org/data/2.5/weather?id=";
     public static final String TOKEN = "&appid=7750e246f88347f2abd5bb7f29ca6d26";
     public static final String BASE_WEEK_URL = "http://api.openweathermap.org/data/2.5/forecast?id=";
+    public static final String CODE = "code";
 
     public static JSONObject getObect(String tagName, JSONObject jsonObject) throws JSONException
     {
