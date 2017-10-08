@@ -45,7 +45,7 @@ public class CheckUpdates extends Service {
     private Runnable sendUpdatesToUI = new Runnable() {
         public void run() {
             DisplayLoggingInfo();
-            handler.postDelayed(this, 7 * 1000); // 7 sec
+            handler.postDelayed(this, 3600 * 1000); // 7 sec
         }
     };
 

@@ -1,9 +1,14 @@
 package com.example.mrnobody43.weatherappliactaion;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,6 +30,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import Util.Utills;
+import data.DatabaseHelper;
 import data.JSONWeatherParser;
 import data.WeatherHttpClient;
 import model.Weather;
@@ -45,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
     private Button detailInformation;
     public static ArrayList<String> cityNameArray;
     private String id = "484907";
+    private DatabaseHelper myDb;
+    private String offlineData;
+    private SQLiteDatabase db;
 
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -82,6 +92,12 @@ public class MainActivity extends AppCompatActivity {
         this.id = id;
     }
 
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
 
         cityNameArray = new ArrayList<String>(200000);
 
-
+        myDb = new DatabaseHelper(this);
         startService(new Intent(this, CheckUpdates.class));
 
 
@@ -130,6 +146,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
+    protected void onDestroy(Bundle savedInstanceState) {
+        unregisterReceiver(broadcastReceiver);
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (data != null) {
@@ -140,7 +161,40 @@ public class MainActivity extends AppCompatActivity {
 
     public void renderWetherData(String city) {
         WeatherTask weatherTask = new WeatherTask();
-        weatherTask.execute(new String[]{city + "&units=metric"});
+
+        if(isNetworkAvailable())
+        {
+            weatherTask.execute(new String[]{city + "&units=metric"});
+        }
+        else
+        {
+
+            db = myDb.getReadableDatabase();
+            // делаем запрос всех данных из таблицы mytable, получаем Cursor
+            Cursor c = db.query(DatabaseHelper.TABLE_NAME, null, null, null, null, null, null);
+
+            // ставим позицию курсора на первую строку выборки
+            // если в выборке нет строк, вернется false
+            if (c.moveToFirst())
+            {
+                while(true) {
+                    if (c.isAfterLast()) break;
+
+                    int idIndex = c.getColumnIndex(DatabaseHelper.ID);
+                    int dayIndex = c.getColumnIndex(DatabaseHelper.JSON_DAY);
+
+                    offlineData = c.getString(dayIndex);
+                    String bdId = c.getString(idIndex);
+                    if (id.equals(bdId)){
+                        weatherTask.execute("db");
+                        break;
+                    } else c.moveToNext();
+                }
+            } else
+                Toast.makeText(this, "Need internet connection", Toast.LENGTH_SHORT).show();
+            c.close();
+
+        }
     }
 
     private class  WeatherTask extends AsyncTask<String, Void, Weather>{
@@ -148,15 +202,31 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Weather doInBackground(String... params) {
 
-            try {
-                String data = ((new WeatherHttpClient()).getWetherData(params[0]));
-
-                weather = JSONWeatherParser.getWeatger(data);
-
+            if(params[0] == "db")
+            {
+                weather = JSONWeatherParser.getWeatger(offlineData);
                 return weather;
+            }
+            else {
+                try {
+                    String data = ((new WeatherHttpClient()).getWetherData(params[0]));
 
-            } catch (IOException e) {
-                e.printStackTrace();
+                    db = myDb.getWritableDatabase();
+
+                    ContentValues cv = new ContentValues();
+                    cv.put(DatabaseHelper.ID, id);
+                    cv.put(DatabaseHelper.JSON_DAY, data);
+
+                    db.insert(DatabaseHelper.TABLE_NAME, null, cv);
+
+                    weather = JSONWeatherParser.getWeatger(data);
+
+                    myDb.close();
+                    return weather;
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             return null;
