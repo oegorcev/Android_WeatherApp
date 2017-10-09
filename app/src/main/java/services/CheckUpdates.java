@@ -35,7 +35,7 @@ public class CheckUpdates extends Service {
                 counter = i;
                 i++;
                 handler.removeCallbacks(sendUpdatesToUI);
-                handler.postDelayed(sendUpdatesToUI, 1 * 1000); // 1 sec
+                handler.postDelayed(sendUpdatesToUI, 3600 * 1000); // 1 sec
             }
 
         }

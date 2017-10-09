@@ -170,13 +170,13 @@ public class MainActivity extends AppCompatActivity {
         {
 
             db = myDb.getReadableDatabase();
-            // делаем запрос всех данных из таблицы mytable, получаем Cursor
+
             Cursor c = db.query(DatabaseHelper.TABLE_NAME, null, null, null, null, null, null);
 
-            // ставим позицию курсора на первую строку выборки
-            // если в выборке нет строк, вернется false
             if (c.moveToFirst())
             {
+
+                boolean flag = true;
                 while(true) {
                     if (c.isAfterLast()) break;
 
@@ -187,9 +187,13 @@ public class MainActivity extends AppCompatActivity {
                     String bdId = c.getString(idIndex);
                     if (id.equals(bdId)){
                         weatherTask.execute("db");
+                        flag = false;
                         break;
                     } else c.moveToNext();
                 }
+
+                if(flag) Toast.makeText(this, "Weather for this city is empty :(", Toast.LENGTH_SHORT).show();
+
             } else
                 Toast.makeText(this, "Need internet connection", Toast.LENGTH_SHORT).show();
             c.close();
@@ -210,12 +214,13 @@ public class MainActivity extends AppCompatActivity {
             else {
                 try {
                     String data = ((new WeatherHttpClient()).getWetherData(params[0]));
-
+                    String dataweek = ((new WeatherHttpClient()).getWeatherWeekData(params[0]));
                     db = myDb.getWritableDatabase();
 
                     ContentValues cv = new ContentValues();
                     cv.put(DatabaseHelper.ID, id);
                     cv.put(DatabaseHelper.JSON_DAY, data);
+                    cv.put(DatabaseHelper.JSON_WEEK, dataweek);
 
                     db.insert(DatabaseHelper.TABLE_NAME, null, cv);
 
